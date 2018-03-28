@@ -1,0 +1,45 @@
+#
+# MAINTAINER: devops@onix-systems.com
+#
+version: "3"
+services:
+
+    graphite-statsd:
+      hostname: "graphite-statsd"
+      image: graphiteapp/graphite-statsd
+      ports:
+        - "${GRAPHITE_BIND_ADDRESS:-127.0.0.1:8080}:80"
+        - "2003-2004:2003-2004"
+        - "2023-2024:2023-2024"
+        - "8125:8125/udp"
+        - "8126:8126"
+      environment:
+        - STATSD_INTERFACE=${STATSD_INTERFACE:-udp}
+      volumes:
+        - "${DATA_FOLDER:-./data}/logs/graphite-statsd:/var/log:rw"
+        - "${DATA_FOLDER:-./data}/graphite/storage:/opt/graphite/storage:rw"
+        - ./config/statsd/config_tcp.js:/opt/statsd/config_tcp.js:ro
+        - ./config/statsd/config_udp.js:/opt/statsd/config_udp.js:ro
+        - ./config/graphite:/opt/graphite/conf:ro
+      restart: unless-stopped
+      logging:
+        driver: "json-file"
+        options:
+          max-size: "10M"
+          max-file: "5"
+
+    graphana:
+      hostname: "graphana"
+      image: grafana/grafana
+      ports:
+        - "${GRAPHANA_BIND_ADDRESS:-127.0.0.1:8081}:3000"
+      environment:
+        - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD:-secret}"
+      volumes:
+        - "${DATA_FOLDER:-data}/graphana:/var/lib/grafana"
+      restart: unless-stopped
+      logging:
+        driver: "json-file"
+        options:
+          max-size: "10M"
+          max-file: "5"
