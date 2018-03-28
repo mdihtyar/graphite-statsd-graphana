@@ -13,6 +13,8 @@ services:
         - "2023-2024:2023-2024"
         - "8125:8125/udp"
         - "8126:8126"
+        #
+        - "${GRAPHANA_BIND_ADDRESS:-127.0.0.1:8081}:3000"
       environment:
         - STATSD_INTERFACE=${STATSD_INTERFACE:-udp}
       volumes:
@@ -29,12 +31,10 @@ services:
           max-file: "5"
 
     graphana:
-      hostname: "graphana"
       image: grafana/grafana
-      ports:
-        - "${GRAPHANA_BIND_ADDRESS:-127.0.0.1:8081}:3000"
+      network_mode: service:graphite-statsd
       environment:
-        - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD:-secret}"
+        - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD:-secret}
       volumes:
         - "${DATA_FOLDER:-./data}/graphana:/var/lib/grafana"
       restart: unless-stopped
